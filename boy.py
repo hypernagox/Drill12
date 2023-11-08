@@ -189,14 +189,15 @@ class Boy:
         self.state_machine = StateMachine(self)
         self.state_machine.start()
         self.ball_count = 10
-
+        self.dead = False
 
     def fire_ball(self):
         if self.ball_count > 0:
             self.ball_count -= 1
             ball = Ball(self.x, self.y, self.face_dir*10)
+            ball.m_bIsFire = True
             game_world.add_object(ball)
-
+            game_world.add_collision_pair('ball:zombie',ball,None)
     def update(self):
         self.state_machine.update()
 
@@ -206,5 +207,13 @@ class Boy:
     def draw(self):
         self.state_machine.draw()
         self.font.draw(self.x-10, self.y + 50, f'{self.ball_count:02d}', (255, 255, 0))
-
+        draw_rectangle(*self.get_bb()) # 튜플을 분해
     # fill here
+    def get_bb(self):
+        return self.x - 20,self.y - 50,self.x + 20,self.y + 50 # 4개의 값을 하나의 튜플로
+
+    def handle_collision(self, group, other):
+        if group == 'boy:ball':
+            self.ball_count += 1
+        if group == 'boy:zombie':
+            game_framework.quit()
